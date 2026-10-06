@@ -1,45 +1,34 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+const defaultBase = 'http://localhost:4000';
 
-const AuthContext = createContext(null);
+async function request(path: string, options: RequestInit = {}) {
+  const token = localStorage.getItem('cropadvisor-token') || 'demo-token';
+  const headers = new Headers(options.headers || {});
+  headers.set('Authorization', `Bearer ${token}`);
+  if (!(options.body instanceof FormData)) {
+    headers.set('Content-Type', 'application/json');
+  }
 
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const response = await fetch(`${defaultBase}${path}`, { ...options, headers });
 
-  useEffect(() => {
-    const saved = localStorage.getItem('cropadvisor-user');
-    if (saved) {
-      setUser(JSON.parse(saved));
-    }
-    setLoading(false);
-  }, []);
+  const text = await response.text();
+  let body: any = null;
+  try {
+    body = text ? JSON.parse(text) : null;
+  } catch {
+    body = text;
+  }
 
-  const signIn = async (email, password) => {
-    const normalizedUser = { id: 'demo-user', name: 'Demo Farmer', email };
-    localStorage.setItem('cropadvisor-user', JSON.stringify(normalizedUser));
-    setUser(normalizedUser);
-    return normalizedUser;
-  };
+  if (!response.ok) {
+    const message = body?.error?.message || body?.message || 'Request failed';
+    throw new Error(message);
+  }
 
-  const signUp = async ({ name, email, password }) => {
-    const normalizedUser = { id: 'demo-user', name: name || 'Demo Farmer', email };
-    localStorage.setItem('cropadvisor-user', JSON.stringify(normalizedUser));
-    setUser(normalizedUser);
-    return normalizedUser;
-  };
-
-  const signOut = async () => {
-    localStorage.removeItem('cropadvisor-user');
-    setUser(null);
-  };
-
-  const value = useMemo(() => ({ user, loading, signIn, signUp, signOut }), [user, loading]);
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return body;
 }
 
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) throw new Error('useAuth must be used inside AuthProvider');
-  return context;
-}
+export const apiClient = {
+  get: (path: string) => request(path, { method: 'GET' }),
+  post: (path: string, data: unknown) => request(path, { method: 'POST', body: JSON.stringify(data) }),
+  put: (path: string, data: unknown) => request(path, { method: 'PUT', body: JSON.stringify(data) }),
+  del: (path: string) => request(path, { method: 'DELETE' }),
+};
