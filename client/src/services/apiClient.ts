@@ -1,79 +1,45 @@
-import { supabase } from './supabaseClient';
-import type { ApiErrorResponse } from '../types';
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000';
+const AuthContext = createContext(null);
 
-export class ApiError extends Error {
-  code: string;
-  statusCode: number;
-  details: Array<{ path: string; message: string }>;
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  constructor(message: string, statusCode = 500, code = 'API_ERROR', details: Array<{ path: string; message: string }> = []) {
-    super(message);
-    this.name = 'ApiError';
-    this.statusCode = statusCode;
-    this.code = code;
-    this.details = details;
-  }
-}
+  useEffect(() => {
+    const saved = localStorage.getItem('cropadvisor-user');
+    if (saved) {
+      setUser(JSON.parse(saved));
+    }
+    setLoading(false);
+  }, []);
 
-let onUnauthorizedCallback: (() => void) | null = null;
-
-export function setOnUnauthorizedCallback(cb: () => void) {
-  onUnauthorizedCallback = cb;
-}
-
-export async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  const url = `${API_BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
-
-  // Get current session token from Supabase Auth
-  const { data: { session } } = await supabase.auth.getSession();
-  const token = session?.access_token;
-
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    ...(options.headers as Record<string, string>),
+  const signIn = async (email, password) => {
+    const normalizedUser = { id: 'demo-user', name: 'Demo Farmer', email };
+    localStorage.setItem('cropadvisor-user', JSON.stringify(normalizedUser));
+    setUser(normalizedUser);
+    return normalizedUser;
   };
 
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
+  const signUp = async ({ name, email, password }) => {
+    const normalizedUser = { id: 'demo-user', name: name || 'Demo Farmer', email };
+    localStorage.setItem('cropadvisor-user', JSON.stringify(normalizedUser));
+    setUser(normalizedUser);
+    return normalizedUser;
+  };
 
-  let response: Response;
-  try {
-    response = await fetch(url, {
-      ...options,
-      headers,
-    });
-  } catch (netErr: any) {
-    throw new ApiError('Unable to connect to the CropAdvisor server. Please check your network connection.', 0, 'NETWORK_ERROR');
-  }
+  const signOut = async () => {
+    localStorage.removeItem('cropadvisor-user');
+    setUser(null);
+  };
 
-  if (response.status === 401) {
-    if (onUnauthorizedCallback) {
-      onUnauthorizedCallback();
-    }
-  }
+  const value = useMemo(() => ({ user, loading, signIn, signUp, signOut }), [user, loading]);
 
-  let data: any = null;
-  const contentType = response.headers.get('content-type');
-  if (contentType && contentType.includes('application/json')) {
-    try {
-      data = await response.json();
-    } catch {
-      data = null;
-    }
-  }
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
 
-  if (!response.ok) {
-    const errorBody: ApiErrorResponse['error'] = data?.error || {
-      code: `HTTP_${response.status}`,
-      message: response.statusText || 'An unexpected error occurred',
-      details: [],
-    };
-
-    throw new ApiError(errorBody.message, response.status, errorBody.code, errorBody.details || []);
-  }
-
-  return data as T;
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (!context) throw new Error('useAuth must be used inside AuthProvider');
+  return context;
 }

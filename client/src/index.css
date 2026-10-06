@@ -1,9 +1,21 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+export type User = {
+  id: string;
+  name: string;
+  email: string;
+};
 
-@layer base {
-  body {
-    @apply bg-slate-50 text-slate-800 antialiased font-sans;
-  }
-}
+export type Advisory = {
+  id: string;
+  crop: string;
+  location: string;
+  riskLevel: 'low' | 'medium' | 'high';
+  summary: string;
+  createdAt?: string;
+};
+
+export type Profile = {
+  id: string;
+  name: string;
+  defaultLocation?: string;
+  preferredLanguage?: 'English' | 'Kannada' | 'Hindi';
+};

@@ -1,16 +1,7 @@
-export const logger = {
-  info: (message, meta = {}) => {
-    console.log(JSON.stringify({ level: 'info', timestamp: new Date().toISOString(), message, ...meta }));
-  },
-  warn: (message, meta = {}) => {
-    console.warn(JSON.stringify({ level: 'warn', timestamp: new Date().toISOString(), message, ...meta }));
-  },
-  error: (message, meta = {}) => {
-    console.error(JSON.stringify({ level: 'error', timestamp: new Date().toISOString(), message, ...meta }));
-  },
-  debug: (message, meta = {}) => {
-    if (process.env.NODE_ENV !== 'production') {
-      console.debug(JSON.stringify({ level: 'debug', timestamp: new Date().toISOString(), message, ...meta }));
-    }
-  },
+const logger = {
+  info: (...args) => console.log('[INFO]', ...args),
+  warn: (...args) => console.warn('[WARN]', ...args),
+  error: (...args) => console.error('[ERROR]', ...args),
 };
+
+export { logger };

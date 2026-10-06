@@ -1,5 +1,6 @@
-import { AppError } from '../lib/AppError.js';
-
-export function notFound(req, res, next) {
-  next(new AppError(`Endpoint not found: ${req.method} ${req.originalUrl}`, 404, 'NOT_FOUND'));
-}
+export const notFound = (req, res, next) => {
+  const error = new Error(`Not found: ${req.originalUrl}`);
+  error.statusCode = 404;
+  error.code = 'NOT_FOUND';
+  next(error);
+};

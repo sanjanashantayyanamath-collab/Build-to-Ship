@@ -1,14 +1,27 @@
-import { Router } from 'express';
-import { requireAuth } from '../middleware/auth.js';
-import { validate } from '../middleware/validate.js';
-import { profileUpdateSchema } from '../schemas/profile.schema.js';
-import { getProfileHandler, updateProfileHandler } from '../controllers/profile.controller.js';
+const profileStore = new Map();
 
-const router = Router();
-
-router.use(requireAuth);
-
-router.get('/', getProfileHandler);
-router.put('/', validate({ body: profileUpdateSchema }), updateProfileHandler);
-
-export default router;
+export const profileRoutes = {
+  getProfile: (req, res) => {
+    const userId = req.user.id;
+    const profile = profileStore.get(userId) || {
+      id: userId,
+      name: 'Demo Farmer',
+      defaultLocation: 'Mysuru, Karnataka',
+      preferredLanguage: 'English',
+    };
+    profileStore.set(userId, profile);
+    res.json(profile);
+  },
+  updateProfile: (req, res) => {
+    const userId = req.user.id;
+    const payload = req.body;
+    const profile = {
+      id: userId,
+      name: payload.name || 'Demo Farmer',
+      defaultLocation: payload.defaultLocation || 'Mysuru, Karnataka',
+      preferredLanguage: payload.preferredLanguage || 'English',
+    };
+    profileStore.set(userId, profile);
+    res.json(profile);
+  },
+};

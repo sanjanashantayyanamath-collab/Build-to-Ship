@@ -1,10 +1,12 @@
-export class AppError extends Error {
-  constructor(message, statusCode = 500, code = 'INTERNAL_ERROR', details = []) {
+class AppError extends Error {
+  constructor({ statusCode = 500, code = 'INTERNAL_ERROR', message = 'Something went wrong', details = [] }) {
     super(message);
     this.name = 'AppError';
     this.statusCode = statusCode;
     this.code = code;
+    this.message = message;
     this.details = details;
-    Error.captureStackTrace(this, this.constructor);
   }
 }
+
+export default AppError;
