@@ -1,6 +1,6 @@
-const defaultBase = 'http://localhost:4000';
+const defaultBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000';
 
-async function request(path: string, options: RequestInit = {}) {
+export async function apiRequest<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = localStorage.getItem('cropadvisor-token') || 'demo-token';
   const headers = new Headers(options.headers || {});
   headers.set('Authorization', `Bearer ${token}`);
@@ -23,12 +23,12 @@ async function request(path: string, options: RequestInit = {}) {
     throw new Error(message);
   }
 
-  return body;
+  return body as T;
 }
 
 export const apiClient = {
-  get: (path: string) => request(path, { method: 'GET' }),
-  post: (path: string, data: unknown) => request(path, { method: 'POST', body: JSON.stringify(data) }),
-  put: (path: string, data: unknown) => request(path, { method: 'PUT', body: JSON.stringify(data) }),
-  del: (path: string) => request(path, { method: 'DELETE' }),
+  get: <T>(path: string) => apiRequest<T>(path, { method: 'GET' }),
+  post: <T>(path: string, data: unknown) => apiRequest<T>(path, { method: 'POST', body: JSON.stringify(data) }),
+  put: <T>(path: string, data: unknown) => apiRequest<T>(path, { method: 'PUT', body: JSON.stringify(data) }),
+  del: <T>(path: string) => apiRequest<T>(path, { method: 'DELETE' }),
 };
