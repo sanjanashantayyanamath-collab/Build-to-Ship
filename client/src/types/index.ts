@@ -1,8 +1,39 @@
-import { createClient } from '@supabase/supabase-js';
+export type User = {
+  id: string;
+  name: string;
+  email: string;
+};
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://example.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'demo-key';
+export type Advisory = {
+  id: string;
+  crop: string;
+  location: string;
+  riskLevel: 'low' | 'medium' | 'high';
+  summary: string;
+  createdAt?: string;
+};
 
-export const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
-});
+export type AdvisoryListResponse = {
+  items: Advisory[];
+  page: number;
+  pageSize: number;
+  total: number;
+};
+
+export type AdvisoryStats = {
+  totalAdvisories: number;
+  byRiskLevel: {
+    low: number;
+    medium: number;
+    high: number;
+  };
+  topCrop: string;
+  lastFiveAdvisories: Advisory[];
+};
+
+export type Profile = {
+  id: string;
+  name: string;
+  defaultLocation?: string;
+  preferredLanguage?: 'English' | 'Kannada' | 'Hindi';
+};

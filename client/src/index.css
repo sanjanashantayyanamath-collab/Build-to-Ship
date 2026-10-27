@@ -1,21 +1,3 @@
-export type User = {
-  id: string;
-  name: string;
-  email: string;
-};
-
-export type Advisory = {
-  id: string;
-  crop: string;
-  location: string;
-  riskLevel: 'low' | 'medium' | 'high';
-  summary: string;
-  createdAt?: string;
-};
-
-export type Profile = {
-  id: string;
-  name: string;
-  defaultLocation?: string;
-  preferredLanguage?: 'English' | 'Kannada' | 'Hindi';
-};
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
