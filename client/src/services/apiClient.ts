@@ -3,7 +3,7 @@ const defaultBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000'
 export async function apiRequest<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = localStorage.getItem('cropadvisor-token') || 'demo-token';
   const headers = new Headers(options.headers || {});
-  headers.set('Authorization', `Bearer ${token}`);
+  headers.set('Authorization', 'Bearer ' + token);
   if (!(options.body instanceof FormData)) {
     headers.set('Content-Type', 'application/json');
   }
@@ -11,7 +11,7 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}): Pr
   const response = await fetch(`${defaultBase}${path}`, { ...options, headers });
 
   const text = await response.text();
-  let body: any = null;
+  let body: unknown = null;
   try {
     body = text ? JSON.parse(text) : null;
   } catch {
@@ -19,7 +19,8 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}): Pr
   }
 
   if (!response.ok) {
-    const message = body?.error?.message || body?.message || 'Request failed';
+    const errorBody = body as { error?: { message?: string }; message?: string } | null;
+    const message = errorBody?.error?.message || errorBody?.message || 'Request failed';
     throw new Error(message);
   }
 
